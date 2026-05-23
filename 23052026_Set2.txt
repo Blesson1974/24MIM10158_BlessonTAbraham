@@ -1,0 +1,245 @@
+create database office1;
+
+use office1;
+
+CREATE TABLE Departments (
+    dept_id INT PRIMARY KEY,
+    dept_name VARCHAR(50) NOT NULL,
+    location_id VARCHAR(50) NOT NULL
+);
+
+
+INSERT INTO Departments (dept_id, dept_name, location_id)
+VALUES
+(10, 'Consulting', 'NYC'),
+(20, 'Engineering', 'SF'),
+(30, 'R&D', 'London'),
+(40, 'Sales', 'NYC'),
+(50, 'HR', 'SF'),
+(60, 'Admin', 'London');
+
+
+CREATE TABLE Employees (
+    employee_id INT PRIMARY KEY,
+    employee_name VARCHAR(50) NOT NULL,
+    manager_id INT,
+    dept_id INT,
+    salary DECIMAL(10,2) NOT NULL,
+
+    FOREIGN KEY (manager_id) REFERENCES Employees(employee_id),
+    FOREIGN KEY (dept_id) REFERENCES Departments(dept_id)
+);
+
+
+INSERT INTO Employees 
+(employee_id, employee_name, manager_id, dept_id, salary)
+VALUES
+(100, 'Alice Smith (CEO)', NULL, 10, 180000.00),
+(101, 'Bob Johnson', 100, 20, 120000.00),
+(102, 'Charlie Brown', 101, 20, 95000.00),
+(103, 'Diana Prince', 100, 30, 110000.00),
+(104, 'Evan Clark', 103, 30, 85000.00),
+(105, 'Fiona Glen', 101, 20, 90000.00),
+(106, 'George King', 100, 40, 75000.00),
+(107, 'Hannah Lee', 103, 30, 88000.00),
+(108, 'Ivan Rossi', 100, 50, 60000.00),
+(109, 'Jane Doe', 101, 20, 125000.00),
+(110, 'Kevin Blue', 104, 30, 86000.00);
+
+
+
+CREATE TABLE Projects (
+    project_id INT PRIMARY KEY,
+    project_name VARCHAR(50) NOT NULL,
+    client_name VARCHAR(50) NOT NULL,
+    start_date DATE NOT NULL,
+    dept_id INT,
+
+    FOREIGN KEY (dept_id) REFERENCES Departments(dept_id)
+);
+
+
+INSERT INTO Projects
+(project_id, project_name, client_name, start_date, dept_id)
+VALUES
+(5001, 'Aurora Migration', 'GlobalTech Solutions', '2023-01-15', 20),
+(5002, 'Synergy App Dev', 'Zenith Corp', '2023-05-20', 30),
+(5003, 'Q4 Sales Strategy', 'Apex Industries', '2024-01-01', 40),
+(5004, 'Global Expansion', 'GlobalTech Solutions', '2024-03-10', 10),
+(5005, 'Internal HR Tool', 'Internal', '2024-02-01', 50),
+(5006, 'Data Analytics', 'Zenith Corp', '2022-11-01', 20),
+(5007, 'Future Tech R&D', 'R&D Dept', '2024-06-01', 30);
+
+
+
+CREATE TABLE Assignments (
+    assignment_id INT PRIMARY KEY,
+    employee_id INT,
+    project_id INT,
+    hours_worked INT NOT NULL,
+    start_date DATE NOT NULL,
+
+    FOREIGN KEY (employee_id) REFERENCES Employees(employee_id),
+    FOREIGN KEY (project_id) REFERENCES Projects(project_id)
+);
+
+
+INSERT INTO Assignments
+(assignment_id, employee_id, project_id, hours_worked, start_date)
+VALUES
+(1, 101, 5001, 150, '2023-01-15'),
+(2, 102, 5001, 160, '2023-01-15'),
+(3, 105, 5001, 140, '2023-02-01'),
+(4, 103, 5002, 80, '2023-05-20'),
+(5, 104, 5002, 70, '2023-06-01'),
+(6, 106, 5003, 5, '2024-01-01'),
+(7, 100, 5004, 20, '2024-03-10'),
+(8, 107, 5002, 75, '2023-05-25'),
+(9, 109, 5006, 200, '2022-11-01'),
+(10, 101, 5006, 250, '2022-11-01'),
+(11, 102, 5006, 180, '2022-12-01'),
+(12, 110, 5007, 10, '2024-06-01');
+
+
+
+-- 1. 
+SELECT 
+    Employees.employee_name AS Employee_Name,
+    Departments.dept_name AS Department_Name,
+    Departments.location_id AS Location
+FROM Employees
+INNER JOIN Departments
+    ON Employees.dept_id = Departments.dept_id;
+    
+-- 3.
+SELECT 
+    Employees.employee_name AS Employee_Name,
+    Projects.project_name AS Project_Name
+FROM Employees
+INNER JOIN Assignments
+    ON Employees.employee_id = Assignments.employee_id
+INNER JOIN Projects
+    ON Assignments.project_id = Projects.project_id
+WHERE Projects.client_name = 'GlobalTech Solutions';
+    
+-- 4.
+SELECT 
+    Departments.dept_name AS Department_Name
+FROM Departments
+LEFT JOIN Employees
+    ON Departments.dept_id = Employees.dept_id
+WHERE Employees.employee_id IS NULL;
+
+-- 6.
+SELECT 
+    Employees.employee_name AS Employee_Name,
+    AVG(Assignments.hours_worked) AS Average_Hours
+FROM Employees
+INNER JOIN Assignments
+    ON Employees.employee_id = Assignments.employee_id
+GROUP BY Employees.employee_name;
+
+-- 8.
+SELECT 
+    Projects.client_name AS Client_Name,
+    SUM(Assignments.hours_worked) AS Total_Hours
+FROM Projects
+INNER JOIN Assignments
+    ON Projects.project_id = Assignments.project_id
+GROUP BY Projects.client_name
+HAVING SUM(Assignments.hours_worked) > 500;
+
+-- 9.
+SELECT 
+    Departments.location_id,
+    Departments.dept_name,
+    COUNT(Employees.employee_id) AS Total_Employees
+FROM Departments
+INNER JOIN Employees
+    ON Departments.dept_id = Employees.dept_id
+GROUP BY Departments.location_id, Departments.dept_name
+ORDER BY Departments.location_id, Total_Employees DESC;
+
+-- 10.
+SELECT 
+    Projects.project_name AS Project_Name,
+    COUNT(DISTINCT Assignments.employee_id) AS Total_Employees
+FROM Projects
+INNER JOIN Assignments
+    ON Projects.project_id = Assignments.project_id
+GROUP BY Projects.project_name
+HAVING COUNT(DISTINCT Assignments.employee_id) > 5;
+
+-- 12.
+SELECT DISTINCT
+    Departments.dept_name AS Department_Name
+FROM Departments
+INNER JOIN Employees
+    ON Departments.dept_id = Employees.dept_id
+INNER JOIN Assignments
+    ON Employees.employee_id = Assignments.employee_id
+GROUP BY Departments.dept_name, Employees.employee_id
+HAVING COUNT(DISTINCT Assignments.project_id) > 1;
+
+-- 13.
+SELECT 
+    Employees.employee_name AS Employee_Name,
+    Projects.project_name AS Project_Name
+FROM Employees
+INNER JOIN Assignments
+    ON Employees.employee_id = Assignments.employee_id
+INNER JOIN Projects
+    ON Assignments.project_id = Projects.project_id
+WHERE Assignments.hours_worked < 10;
+
+-- 14.
+SELECT 
+    Projects.project_name AS Project_Name
+FROM Projects
+LEFT JOIN Assignments
+    ON Projects.project_id = Assignments.project_id
+WHERE Assignments.assignment_id IS NULL;
+
+-- 16
+SELECT 
+    Employees.employee_name AS Employee_Name,
+    MIN(Assignments.start_date) AS Oldest_Project_Date
+FROM Employees
+INNER JOIN Assignments
+    ON Employees.employee_id = Assignments.employee_id
+GROUP BY Employees.employee_name;
+
+-- 17.
+SELECT 
+    project_name,
+    start_date
+FROM Projects
+WHERE DATE_FORMAT(start_date, '%Y') = '2023';
+
+-- 18.
+SELECT 
+    employee_name,
+    IFNULL(manager_id, 'CEO') AS Manager
+FROM Employees;
+
+-- 21
+SELECT 
+    Employee.employee_name AS Employee_Name,
+    Manager.employee_name AS Manager_Name
+FROM Employees AS Employee
+LEFT JOIN Employees AS Manager
+    ON Employee.manager_id = Manager.employee_id;
+    
+-- 23
+SELECT DISTINCT
+    Employees.employee_name
+FROM Employees
+INNER JOIN Assignments
+    ON Employees.employee_id = Assignments.employee_id
+WHERE Assignments.project_id IN
+(
+    SELECT project_id
+    FROM Assignments
+    WHERE employee_id = 101
+)
+AND Employees.employee_id != 101;
