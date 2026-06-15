@@ -1,0 +1,15 @@
+Project: Hotel Staff Management System
+
+Description:
+
+The Hotel Staff Management System is a backend application developed using Java 21, Spring Boot, and MongoDB. The system is designed to simplify hotel staff management by providing secure staff registration and authentication along with manager-controlled operations. Staff members can create accounts, log in securely, and manage their profiles, while managers have access to administrative features such as viewing staff details, updating records, assigning roles, and removing inactive staff. MongoDB is used as the NoSQL database to efficiently store and retrieve staff information, and Spring Security ensures secure authentication and authorization. The project follows RESTful API principles and demonstrates practical implementation of CRUD operations, role-based access control, and modern backend development practices.
+
+Technologies Used:
+
+Java 21
+Spring Boot
+Spring Security
+MongoDB
+Maven
+REST APIs
+JWT Authentication
